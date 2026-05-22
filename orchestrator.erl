@@ -7,8 +7,8 @@ start() ->
     io:format("✅ Orchestratore Erlang avviato. Worker Python connesso.~n").
 
 stop() ->
+    % Inviamo il segnale di chiusura. Erlang chiude la porta e deregistra il nome in automatico.
     python_worker ! {self(), close},
-    unregister(python_worker),
     io:format("🛑 Worker Python disconnesso.~n").
 
 calcola(Numero) ->
