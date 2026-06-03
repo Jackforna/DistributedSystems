@@ -1,0 +1,14 @@
+{application, erlang_orchestrator,
+ [{description, "Hospital Node Orchestrator"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {erlang_orchestrator_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
