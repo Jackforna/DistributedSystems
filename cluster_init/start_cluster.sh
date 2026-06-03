@@ -4,7 +4,7 @@ COOKIE="PROGETTO_FL_SECRET"
 
 # Forziamo a mano i percorsi per evitare che WSL usi i link UNC di rete
 LINUX_PATH="/mnt/c/DistributedSystems/cluster_init"
-WINDOWS_PATH="C:\\DistributedSystems\\cluster_init"
+WINDOWS_PATH="C:\Users\giaco\OneDrive\Documents\GitHub\DistributedSystems\cluster_init"
 
 echo "=== Spostamento forzato nella cartella su Disco C ==="
 # Creiamo la cartella reale su Windows se non esiste
