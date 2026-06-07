@@ -24,3 +24,10 @@ Questo progetto utilizza Erlang come orchestrator e Python come worker, comunica
    ```erlang
    python_worker_srv:send_message("Ciao Python!").
    ```
+
+## Cluster Auto-Discovery
+Per avviare il nodo in modalità cluster e autoconnetterti ad altri nodi, fornisci un nome di nodo (`-sname`), un cookie segreto (`-setcookie`) e passa la variabile `seed_nodes`:
+```bash
+erl -sname nodo1 -setcookie ospedale_cookie -pa ebin -erlang_orchestrator seed_nodes "['nodo2@hostname', 'nodo3@hostname']" -eval "application:start(erlang_orchestrator)."
+```
+All'avvio, il sistema stamperà log chiari (✅ / ⚠️) ad indicare lo stato della connessione verso ogni nodo seed fornito.

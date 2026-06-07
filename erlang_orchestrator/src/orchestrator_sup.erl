@@ -12,6 +12,12 @@ init([]) ->
                  intensity => 1,
                  period => 5},
     ChildSpecs = [
+        #{id => cluster_manager_srv,
+          start => {cluster_manager_srv, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [cluster_manager_srv]},
         #{id => python_worker_srv,
           start => {python_worker_srv, start_link, []},
           restart => permanent,
