@@ -51,7 +51,7 @@ Abbiamo sottoposto il nodo a uno stress test per verificare la resilienza dell'a
 1. **Verifica dei Messaggi Validi**: Il comando `python_worker_srv:send_message("21")` ha restituito con successo il valore atteso `42.0`.
 2. **Simulazione del Guasto Brutale**: È stato individuato il PID del processo Python in background tramite `ps aux` e terminato forzatamente via terminale Linux con il segnale distruttivo:
 
-# BLOCCO 2: Network-Level Architecture & Cluster Full-Mesh
+# BLOCCO 2: Network-Level Architecture & Cluster Full-Mesh (Jack)
 
 L'obiettivo di questa fase è stato l'implementazione del **Capitolo 4.1** della relazione tecnica: connettere fisicamente i diversi nodi (silos ospedalieri) in una topologia decentralizzata a maglia completa (**Full-Mesh**) sfruttando il demone nativo di Erlang `epmd` (Erlang Port Mapper Daemon) e automatizzando la scoperta reciproca senza interventi manuali dell'operatore.
 
@@ -90,3 +90,39 @@ Interrogando il Silo C tramite la funzione di sistema nodes()., il terminale ha 
 ```
 
 La topologia Full-Mesh è configurata, stabile e pronta per ospitare i messaggi di sincronizzazione e l'algoritmo di consenso per l'elezione del Leader.
+
+---
+
+# 👑 BLOCCO 3: Leader Election (Bully Algorithm)
+
+L'obiettivo di questa fase è stato implementare un meccanismo di consenso distribuito per determinare univocamente un nodo "Aggregatore" (Leader) all'interno del cluster ospedaliero, requisito fondamentale per orchestrare i round di addestramento nel Federated Learning.
+
+La scelta architetturale è ricaduta sul **Bully Algorithm**, sfruttando le capacità native della BEAM VM per la comparazione alfanumerica degli identificativi di nodo.
+
+## 📌 Step 1: Implementazione del Server di Consenso (`bully_srv.erl`)
+È stato creato un nuovo GenServer dedicato esclusivamente alla gestione della macchina a stati dell'elezione.
+
+1. **Gestione dello Stato**: Il server mantiene in memoria l'ID del Leader attualmente riconosciuto e un riferimento al timer di elezione (`timer = undefined`).
+2. **Comparazione Nativa**: Invece di mappare ID numerici artificiali, l'algoritmo sfrutta la funzione di sistema `node/0`. In Erlang, la comparazione tra atomi è deterministica (es. `siloc@host` > `silob@host`), fornendo una gerarchia naturale e immutabile per la rete.
+3. **Disaccoppiamento dell'Avvio**: L'elezione non viene innescata nella funzione `init/1` per evitare *race condition* con il modulo `cluster_manager_srv` (Auto-Discovery) sviluppato nel Blocco 2. Viene fornita un'API esplicita `bully_srv:start_election/0`.
+
+## 📌 Step 2: Macchina a Stati e Messaggistica (Inter-Node Communication)
+La logica di elezione è stata mappata su tre messaggi scambiati in modo asincrono tramite `gen_server:cast/2`:
+
+- **ELECTION (`{election, FromNode}`)**: Un nodo notifica la propria candidatura esclusivamente ai nodi con identificativo strettamente maggiore (`Node > node()`).
+- **ALIVE (`{alive, FromNode}`)**: Un nodo che riceve un messaggio di elezione da un nodo gerarchicamente inferiore risponde immediatamente per bloccarne la scalata, e avvia a sua volta la propria elezione verso l'alto.
+- **COORDINATOR (`{coordinator, LeaderNode}`)**: Se il timer di elezione (2000ms) scade senza aver ricevuto alcun messaggio `alive` (perché il nodo è il maggiore in assoluto o i nodi maggiori sono guasti), il nodo si autoproclama Leader ed emette un broadcast a tutta la rete.
+
+## 📌 Step 3: Integrazione nel Supervision Tree
+Il modulo `bully_srv` è stato inserito in `orchestrator_sup.erl` con strategia `permanent`, affiancandosi al gestore di rete e al worker Python, garantendone il riavvio automatico in caso di crash della macchina a stati.
+
+## 📌 Step 4: Collaudo del Cluster ed "Avalanche Effect"
+Il sistema è stato collaudato su WSL istanziando tre nodi concorrenti (`siloa`, `silob`, `siloc`).
+Innescando l'elezione dal gradino più basso della gerarchia (`siloa`), la rete ha reagito conformemente alla teoria dei Sistemi Distribuiti:
+
+1. `siloa` ha sfidato i maggiori.
+2. `silob` ha soppresso `siloa` e ha sfidato `siloc`.
+3. `siloc` ha soppresso sia `siloa` che `silob`.
+4. Allo scadere del timeout, `siloc` ha notificato a tutti il suo status di Leader.
+
+**Nota Architetturale ("Avalanche Effect")**: Durante il test, i log hanno evidenziato la ricezione di messaggi `coordinator` duplicati da parte del Leader. Questo comportamento non costituisce un'anomalia, ma conferma la corretta aderenza all'implementazione purista del Bully Algorithm. L'effetto valanga si innesca poiché il nodo maggiore (`siloc`) riceve sfide quasi simultanee da più nodi inferiori, allocando molteplici timer concorrenti che, a scadenza, generano broadcast ridondanti.
