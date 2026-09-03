@@ -31,6 +31,8 @@ handle_cast(_Msg, State) ->
 
 handle_info({Port, {data, {eol, Line}}}, State = #state{port = Port}) ->
     io:format("Received from Python: ~p~n", [Line]),
+    %% Inoltra il risultato al fl_manager_srv
+    gen_server:cast(fl_manager_srv, {python_result, Line}),
     {noreply, State};
 handle_info({Port, {exit_status, Status}}, State = #state{port = Port}) ->
     io:format("Python worker exited with status ~p~n", [Status]),

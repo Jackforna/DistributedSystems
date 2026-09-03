@@ -126,3 +126,34 @@ Innescando l'elezione dal gradino più basso della gerarchia (`siloa`), la rete 
 4. Allo scadere del timeout, `siloc` ha notificato a tutti il suo status di Leader.
 
 **Nota Architetturale ("Avalanche Effect")**: Durante il test, i log hanno evidenziato la ricezione di messaggi `coordinator` duplicati da parte del Leader. Questo comportamento non costituisce un'anomalia, ma conferma la corretta aderenza all'implementazione purista del Bully Algorithm. L'effetto valanga si innesca poiché il nodo maggiore (`siloc`) riceve sfide quasi simultanee da più nodi inferiori, allocando molteplici timer concorrenti che, a scadenza, generano broadcast ridondanti.
+
+---
+
+# 🚀 BLOCCO 4: Trasmissione dei Pesi (Round-Trip Erlang-Python)
+
+L'obiettivo del quarto blocco è stato quello di implementare il "sistema nervoso" del Federated Learning: stabilire un circuito chiuso asincrono in cui il nodo Leader impartisce l'ordine di addestramento, i nodi subordinati delegano il calcolo al proprio ambiente locale Python, e i risultati (pesi/gradienti) vengono instradati indietro al Leader per l'aggregazione.
+
+## 📌 Step 1: Implementazione del Federated Learning Manager (`fl_manager_srv.erl`)
+È stato introdotto un nuovo microservizio OTP dedicato alla gestione del ciclo di vita del singolo round di addestramento.
+
+1. **Innesco del Round (`start_round/0`)**: Il Leader invia un broadcast asincrono (`{train_command, LeaderNode}`) a tutta la maglia Full-Mesh (incluso se stesso), ordinando l'inizio della computazione.
+2. **Delega a Python**: Alla ricezione dell'ordine, ogni `fl_manager_srv` locale interagisce con il proprio bridge Python, inviando il dato grezzo iniziale (es. "10") e salvando in stato l'ID del Leader a cui dover rispondere.
+3. **Accumulatore dei Pesi**: Il manager espone un `handle_cast` specifico per raccogliere i payload in arrivo (`{weights_payload, FromNode, Data}`). Quando eseguiti sul Leader, questi cast popolano la lista interna `accumulated_weights`, simulando il buffer di aggregazione.
+
+## 📌 Step 2: Integrazione e Routing nel Bridge (`python_worker_srv.erl`)
+È stata effettuata una modifica chirurgica al GenServer che gestisce la porta standard di comunicazione (Standard I/O) con il processo demone Python.
+- All'interno del pattern matching `handle_info` che intercetta la tupla `{Port, {data, {eol, Line}}}`, è stato inserito un instradamento asincrono: `gen_server:cast(fl_manager_srv, {python_result, Line})`.
+- Questo approccio garantisce la natura non bloccante della BEAM VM: Erlang non attende la fine dell'elaborazione Python, ma reagisce reattivamente non appena l'output stream solleva un evento.
+
+## 📌 Step 3: Espansione del Supervision Tree
+Il modulo `fl_manager_srv` è stato aggiunto all'albero di supervisione all'interno di `orchestrator_sup.erl`. Inserendolo in coda alla lista `ChildSpecs` con strategia `permanent`, ci assicuriamo che l'orchestrazione parta solo dopo che la rete e il worker Python siano già stati correttamente allocati.
+
+## 📌 Step 4: Validazione Architetturale del Round-Trip
+Il collaudo sul cluster (3 nodi, da `siloa` a `siloc`) ha confermato la corretta interconnessione delle tecnologie:
+
+1. **Elezione**: Il cluster ha eletto `siloc` come Aggregatore tramite Bully Algorithm.
+2. **Distribuzione**: È stato impartito il comando `fl_manager_srv:start_round()` sul Leader.
+3. **Esecuzione Concorrente**: I processi Python dei tre nodi hanno ricevuto il segnale, effettuato il calcolo (moltiplicazione per 2.0) e immesso nel buffer di uscita la stringa `"RISULTATO_PYTHON: 20.0"`.
+4. **Aggregazione Centrale**: La rete Erlang ha re-impacchettato i risultati locali e li ha spediti indietro a `siloc`, il quale ha confermato (tramite log visivi ANSI verdi) l'avvenuta ricezione e il salvataggio in memoria dei pesi per ciascun nodo partecipante.
+
+Il layer di comunicazione distribuito è ora maturo per ospitare l'algoritmo matematico vero e proprio (Federated Averaging).

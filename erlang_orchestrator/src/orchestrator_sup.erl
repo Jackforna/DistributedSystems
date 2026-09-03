@@ -29,6 +29,12 @@ init([]) ->
           restart => permanent,
           shutdown => 5000,
           type => worker,
-          modules => [python_worker_srv]}
+          modules => [python_worker_srv]},
+        #{id => fl_manager_srv,
+          start => {fl_manager_srv, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [fl_manager_srv]}
     ],
     {ok, {SupFlags, ChildSpecs}}.
