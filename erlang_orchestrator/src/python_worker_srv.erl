@@ -31,8 +31,16 @@ handle_cast(_Msg, State) ->
 
 handle_info({Port, {data, {eol, Line}}}, State = #state{port = Port}) ->
     io:format("Received from Python: ~p~n", [Line]),
-    %% Inoltra il risultato al fl_manager_srv
-    gen_server:cast(fl_manager_srv, {python_result, Line}),
+    %% Facciamo parsing elementare per prefissi
+    case lists:splitwith(fun(C) -> C =/= $| end, Line) of
+        {"TRAIN_RES", "|" ++ TrainRes} ->
+            gen_server:cast(fl_manager_srv, {python_result, TrainRes});
+        {"AGGREGATE_RES", "|" ++ AggRes} ->
+            gen_server:cast(fl_manager_srv, {aggregated_result, AggRes});
+        _ ->
+            %% Fallback per altri log 
+            gen_server:cast(fl_manager_srv, {python_result, Line})
+    end,
     {noreply, State};
 handle_info({Port, {exit_status, Status}}, State = #state{port = Port}) ->
     io:format("Python worker exited with status ~p~n", [Status]),

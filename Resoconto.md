@@ -157,3 +157,33 @@ Il collaudo sul cluster (3 nodi, da `siloa` a `siloc`) ha confermato la corretta
 4. **Aggregazione Centrale**: La rete Erlang ha re-impacchettato i risultati locali e li ha spediti indietro a `siloc`, il quale ha confermato (tramite log visivi ANSI verdi) l'avvenuta ricezione e il salvataggio in memoria dei pesi per ciascun nodo partecipante.
 
 Il layer di comunicazione distribuito è ora maturo per ospitare l'algoritmo matematico vero e proprio (Federated Averaging).
+
+---
+
+# 🧠 BLOCCO 5: Federated Averaging (FedAvg)
+
+L'obiettivo conclusivo di questa fase è stato implementare il vero e proprio calcolo matematico del Federated Learning: il *Federated Averaging*. Abbiamo potenziato il worker Python affinché gestisca sia l'addestramento locale sia l'aggregazione globale, e abbiamo raffinato la comunicazione Erlang-Python per scambiare tensori strutturati in modo robusto.
+
+## 📌 Step 1: Upgrade del Worker Python (`worker.py`)
+Lo script Python ha abbandonato la logica "Echo" per trasformarsi in una macchina a stati reattiva, governata da prefissi testuali.
+1. **Fase di Addestramento (`TRAIN`)**: Alla ricezione del comando, il nodo simula un addestramento locale generando un vettore di pesi randomizzati (es. `[0.85, 1.12, 0.91]`) per emulare la diversità dei dati clinici, restituendoli formattati come JSON con prefisso `TRAIN_RES|`.
+2. **Fase di Aggregazione (`AGGREGATE|`)**: Alla ricezione del comando di aggregazione seguito dal payload globale (una lista di liste), Python effettua il parsing JSON, calcola la media aritmetica colonna per colonna (FedAvg puro) e restituisce il modello globale unificato con prefisso `AGGREGATE_RES|`.
+
+## 📌 Step 2: Routing Intelligente in Erlang (`python_worker_srv.erl`)
+Per gestire il doppio ruolo di Python senza incorrere in collisioni di messaggi, è stato introdotto un meccanismo di parsing nativo ed efficiente nel bridge Erlang.
+- Sfruttando la funzione nativa `lists:splitwith/2`, il `gen_server` separa chirurgicamente l'intestazione dal payload intercettando il separatore `|`.
+- Questo approccio ha permesso un pattern matching pulito per smistare i risultati asincroni (`{python_result, Data}` o `{aggregated_result, Data}`) al manager di competenza, senza l'uso di librerie di espressioni regolari (regex).
+
+## 📌 Step 3: Serializzazione e Sincronizzazione (`fl_manager_srv.erl`)
+Il manager del Federated Learning è stato aggiornato per attendere dinamicamente tutti i partecipanti e formattare i dati per l'aggregazione finale.
+1. **Tracking Dinamico (`expected_nodes`)**: All'inizio del round, il Leader calcola quanti nodi devono rispondere (`length(nodes()) + 1`) e attende che la lista `accumulated_weights` raggiunga tale dimensione.
+2. **Serializzazione Vanilla (`string:join/2`)**: Per evitare l'onere di dipendenze esterne (es. `jiffy` o `jsx` per il JSON in Erlang), l'array bidimensionale viene costruito "a mano" concatenando le stringhe di risposta con virgole e racchiudendole tra parentesi quadre. Il payload viene poi inviato al Python locale del Leader.
+
+## 📌 Step 4: Collaudo Finale del Cluster
+Il collaudo conclusivo del sistema ha visto il cluster di tre nodi WSL (`siloa`, `silob`, `siloc`[cite: 4]) eseguire un ciclo vitale completo, partendo da zero fino alla convergenza del modello.
+1. **Startup e Discovery**: I nodi si sono interconnessi in topologia Full-Mesh (Blocco 2).
+2. **Consenso**: Tramite Bully Algorithm, `siloc` è stato eletto Aggregatore Globale (Blocco 3).
+3. **Distribuzione e Calcolo Locale**: Innescato l'inizio del round da `siloc`, tutti i nodi hanno delegato il calcolo ai rispettivi worker Python, i quali hanno generato e rispedito vettori di pesi indipendenti (Blocco 4).
+4. **Federated Averaging Globale**: Raggiunto il quorum, `siloc` ha assemblato la super-lista, l'ha inviata al proprio Python e ha intercettato correttamente il risultato dell'aggregazione matematica, celebrando la fine del round con il log cromatico finale: `🧠 [FED-AVG] Round completato! Nuovo Modello Globale: [0.8034, 1.1232, 0.9598]`[cite: 4].
+
+Il framework di Federated Learning distribuito è ora architetturalmente completo, resiliente ai guasti e funzionale.
