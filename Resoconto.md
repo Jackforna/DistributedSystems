@@ -187,3 +187,32 @@ Il collaudo conclusivo del sistema ha visto il cluster di tre nodi WSL (`siloa`,
 4. **Federated Averaging Globale**: Raggiunto il quorum, `siloc` ha assemblato la super-lista, l'ha inviata al proprio Python e ha intercettato correttamente il risultato dell'aggregazione matematica, celebrando la fine del round con il log cromatico finale: `🧠 [FED-AVG] Round completato! Nuovo Modello Globale: [0.8034, 1.1232, 0.9598]`[cite: 4].
 
 Il framework di Federated Learning distribuito è ora architetturalmente completo, resiliente ai guasti e funzionale.
+
+# 🛡️ PILASTRO 1: Resilienza Avanzata e Gestione degli Stragglers
+
+L'obiettivo di questa fase è stato quello di consolidare la robustezza del sistema distribuito, mitigando una delle vulnerabilità più critiche del Federated Learning: la gestione dei nodi ritardatari o bloccati (Stragglers).
+
+## 📌 Il Problema: Il Collo di Bottiglia del Sincronismo
+
+Nel Federated Learning reale, l'aggregazione globale dei pesi si aspetta la risposta di tutti i partecipanti (es. ospedali con capacità computazionali disomogenee). Un nodo lento o vittima di un partizionamento di rete invisibile (che non chiude la connessione ma smette di inviare dati) può provocare la paralisi dell'intero round di addestramento. Nel nostro modello originario, il Leader accumulava passivamente i pesi (`expected_nodes`), rimanendo bloccato all'infinito nell'attesa dell'ultimo pacchetto mancante.
+
+## 📌 L'Implementazione: Timeout Asincrono d'Emergenza
+
+Per risolvere questa fragilità senza ricorrere a complessi meccanismi di polling, abbiamo sfruttato i timer asincroni nativi della BEAM VM all'interno del modulo `fl_manager_srv`.
+
+1. **Allocazione del Timer**: All'innesco del round (`start_round`), il Leader calcola i nodi attesi e contestualmente avvia un timer in background tramite `erlang:send_after(5000, self(), round_timeout)`.
+2. **Successo Nominale (Happy Path)**: Se tutti i nodi rispondono entro la finestra di 5000 ms, l'accumulatore raggiunge il quorum (`length(NewAcc) >= Expected`). Il sistema cancella proattivamente il timer (`erlang:cancel_timer/1`) e procede alla normale aggregazione globale.
+3. **Aggregazione Parziale d'Emergenza**: Se il timer scade, il modulo intercetta il messaggio asincrono `round_timeout`. Il sistema valuta i pesi accumulati fino a quel momento e innesca forzatamente l'aggregazione passando a Python solo i dati dei nodi "sopravvissuti". Questo garantisce il proseguimento dell'addestramento globale scartando il nodo difettoso.
+
+## 📌 Il Percorso di Collaudo: La Resilienza Nativa di Erlang
+
+Il collaudo di questa implementazione ha richiesto tre iterazioni distinte, le quali hanno dimostrato l'estrema resilienza intrinseca dell'ecosistema Erlang/OTP, che rende attivamente "difficile" simulare un guasto fatale.
+
+1. **Ostacolo 1 (L'Albero di Supervisione)**: 
+   Nel primo test, abbiamo simulato un guasto hardware spegnendo brutalmente il worker Python di un nodo (`gen_server:stop(python_worker_srv)`). Il timeout non è scattato perché il Supervisore (`orchestrator_sup`), configurato con `restart_type: permanent`, ha intercettato l'uscita prematura (`reason: normal, child_terminated`) e ha ricreato il processo in una frazione di millisecondo. Il nodo ha quindi risposto in tempo, annullando il timer.
+2. **Ostacolo 2 (Topologia di Rete Dinamica)**: 
+   Nel secondo test, abbiamo provato a far "cadere" l'intero nodo Silo B arrestando la sua Virtual Machine (`init:stop()`). Il demone di rete (`epmd`) del Leader ha rilevato istantaneamente la caduta del socket TCP e ha rimosso il nodo dalla topologia. Di conseguenza, all'avvio del round, il Leader ha ricalcolato dinamicamente il quorum da 3 a 2 nodi attesi, concludendo immediatamente il round con i superstiti senza innescare alcun ritardo.
+3. **Il Test Definitivo (Congelamento del Processo)**: 
+   Per poter effettivamente simulare uno straggler e innescare il timeout, abbiamo dovuto riprodurre un "CPU lock" o un partizionamento silente della rete. Tramite il comando `sys:suspend(fl_manager_srv)`, abbiamo congelato lo stato del processo bersaglio. In questo modo, EPMD ha continuato a vedere il nodo come connesso (mantenendo il quorum a 3), ma il nodo si è rivelato incapace di processare il calcolo. Allo scadere dei 5 secondi di silenzio, il Leader ha correttamente catturato il timeout, stampando il log d'emergenza ANSI giallo ed eseguendo l'aggregazione parziale in totale autonomia.
+
+L'architettura è ora formalmente testata contro stragglers, ritardi di rete e fallimenti silenti dell'hardware periferico.
