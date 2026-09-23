@@ -1,0 +1,328 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;\f1\froman\fcharset0 Times-Roman;\f2\froman\fcharset0 Times-Italic;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid1\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid201\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid3}
+{\list\listtemplateid4\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid301\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{circle\}}{\leveltext\leveltemplateid302\'01\uc0\u9702 ;}{\levelnumbers;}\fi-360\li1440\lin1440 }{\listname ;}\listid4}
+{\list\listtemplateid5\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid401\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid5}
+{\list\listtemplateid6\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid501\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid6}
+{\list\listtemplateid7\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat0\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid601\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid7}
+{\list\listtemplateid8\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid701\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid8}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}{\listoverride\listid4\listoverridecount0\ls4}{\listoverride\listid5\listoverridecount0\ls5}{\listoverride\listid6\listoverridecount0\ls6}{\listoverride\listid7\listoverridecount0\ls7}{\listoverride\listid8\listoverridecount0\ls8}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 1. Introduzione\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Il progetto si basa sull\'92implementazione di un\'92infrastruttura distribuita per il Federated Learning (FL) applicato a Large Language Models (LLM) in ambito sanitario, tramite il paradigma Cross-Silo.\
+Il progetto rappresenta una sfida di per s\'e9 perch\'e9 sebbene un implementazione canonica tramite FL consentirebbe a diverse strutture ospedaliere di addestrare modelli collaborativi senza la condivisione dei dati grezzi dei pazienti, nella recente letteratura si \'e8 dimostrato come la sola condivisione di spazi latenti o dei gradienti esponga il sistema a vulnerabilit\'e0 di Information Disclosure (es. Gradient Leakage Attacks),\
+Per mitigare tali rischi necessitiamo dell\'92uso di tecniche come il DP-SGD (Differentially Private Stochastic Gradient Descent), che tramite il suo utilizzo rende imperativo che tutti i nodi operino in modo strettamente deterministico, partendo quindi da un Seed crittografato condiviso.\
+L'obiettivo che ci siamo posti, quanto meno in un primo momento, non \'e8 lo sviluppo del modello IA in s\'e9, ma spostare il focus sulla progettazione del layer di orchestrazione distribuita capace di garantire l'elezione sicura di un aggregatore, la sincronizzazione dei round e la fault tolerance, coordinando worker eterogenei in un ambiente di rete soggetto a possibili guasti.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 1.1 Definizione e Meccanica del Federated Learning\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Il Federated Learning (FL) \'e8 un paradigma architetturale in cui molteplici client addestrano localmente un modello sui propri dati e inviano esclusivamente gli aggiornamenti (pesi o gradienti) a un server di aggregazione. Quest'ultimo ha il compito di costruire un modello globale senza mai avere accesso ai dati grezzi. La variante pi\'f9 diffusa di questo paradigma \'e8 il 
+\f2\i FedAvg
+\f1\i0  (Federated Averaging), dove il server calcola la media degli aggiornamenti locali, pesandoli in proporzione alla dimensione dei dataset dei singoli client.\
+Nel modello classico server-client, il ciclo di vita si divide in round ben definiti:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls1\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Il server centrale mantiene la versione globale del modello.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 All'inizio di ogni round, il server trasmette i pesi attuali ai client selezionati.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 I client eseguono step di training locale e restituiscono gli aggiornamenti.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	4	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Il server aggrega questi contributi per aggiornare il modello globale.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 {{\NeXTGraphic Attachment.png \width320 \height320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \
+Il vantaggio architetturale primario risiede nel fatto che i dati non lasciano mai il dominio in cui vengono generati. Questo aspetto \'e8 cruciale in contesti sensibili, poich\'e9 riduce i rischi di data breach e agevola la conformit\'e0 a normative come il GDPR. Nel contesto specifico dei Large Language Models, questo approccio permette a diverse organizzazioni di effettuare il fine-tuning di un modello di base condiviso senza scambiarsi documenti o prompt testuali reali.\
+Tuttavia, \'e8 fondamentale sottolineare che il FL, da solo, non garantisce una privacy perfetta. In determinate condizioni, i gradienti scambiati possono far trapelare informazioni sui dati locali (ad esempio tramite 
+\f2\i inversion attacks
+\f1\i0 ). Per colmare questa vulnerabilit\'e0, l'architettura deve integrare tecniche complementari come la Differential Privacy (l'aggiunta di rumore controllato agli aggiornamenti) o la Secure Aggregation (che permette al server di vedere unicamente le somme cifrate degli aggiornamenti). Il FL migliora la privacy rispetto agli approcci centralizzati, ma richiede queste integrazioni per risolverla definitivamente.\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 2. Stato dell'Arte Industriale e Paradigmi di Federated Learning\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Attualmente, le implementazioni industriali di Machine Learning distribuito seguono due paradigmi principali, che dipendono essenzialmente dalla quantit\'e0 di nodi coinvolti (scala) e dalla loro affidabilit\'e0. Prima di definire l'architettura per il nostro caso d'uso clinico, \'e8 necessario analizzare come le grandi aziende affrontano questo problema.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 2.1 L'ecosistema Cross-Device (Google e Apple)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Il modello adottato da Google (ad esempio per Gboard) \'e8 il 
+\f2\i Cross-Device FL
+\f1\i0 . Questo paradigma scala su milioni di dispositivi mobili, operando in un ambiente in cui i client sono naturalmente inaffidabili (es. connessioni instabili, limiti di batteria) e i dati sono 
+\f0\b altamente non-IID
+\f1\b0  (ovvero con distribuzioni statistiche che variano sensibilmente da dispositivo a dispositivo, non essendo un campione omogeneo della popolazione).\
+Dal punto di vista dei Sistemi Distribuiti, gestire questa incertezza obbliga a 
+\f0\b rinunciare a round sincroni rigidi
+\f1\b0 : per evitare che l'intero sistema si blocchi in attesa dei dispositivi pi\'f9 lenti o disconnessi, il server centrale accetta i calcoli completati entro una certa finestra temporale e scarta i ritardatari.\
+Inoltre, per evitare la trasmissione dei gradienti in chiaro, il sistema si affida a protocolli di 
+\f0\b Secure Aggregation (SecAgg) strutturati su grafi k-regolari
+\f1\b0 . Operativamente, i dispositivi vengono inseriti in "gruppi crittografici" dove i rispettivi gradienti vengono mescolati e offuscati tramite l'aggiunta di rumore matematico prima di lasciare il client. Arrivati a destinazione, il server \'e8 matematicamente in grado di estrarre solo la somma aggregata dell'intero gruppo, rendendo impossibile isolare l'aggiornamento del singolo utente.\
+Il vero limite architetturale di questo approccio \'e8 la 
+\f0\b complessit\'e0 computazionale lato client
+\f1\b0 : le operazioni crittografiche necessarie per mascherare i dati in gruppo sono estremamente onerose. Man mano che la rete neurale cresce di dimensioni, la cifratura dei milioni di parametri richiede una potenza di calcolo che i dispositivi mobili non riescono a sostenere senza esaurire rapidamente l'energia o saturare la CPU.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls2\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Appunti per noi\uc0\u8232 
+\f0\b 1. "Rinunciare a round sincroni stretti"
+\f1\b0 \uc0\u8232 Immagina di far addestrare un'IA a un milione di smartphone sparsi per il mondo (es. la tastiera Gboard). I telefoni si spengono, perdono la connessione o entrano in risparmio energetico continuamente (questa \'e8 l'
+\f2\i incertezza
+\f1\i0 ). Se Google decidesse di aspettare che tutti finiscano il loro calcolo esattamente nello stesso momento (round sincrono stretto), il sistema si bloccherebbe in continuazione aspettando i pi\'f9 lenti. Quindi, Google accetta una certa tolleranza: chiude il round prendendo i dati di chi ha finito in tempo e va avanti, ignorando chi si \'e8 disconnesso.\uc0\u8232 
+\f0\b 2. "SecAgg con grafi k-regolari per mascherare i gradienti"
+\f1\b0 \uc0\u8232 Per tutelare la privacy, il tuo telefono non invia a Google il suo aggiornamento puro (il 
+\f2\i gradiente
+\f1\i0 ). Usa invece un trucco crittografico chiamato Secure Aggregation.\uc0\u8232 Il termine 
+\f2\i grafo k-regolare
+\f1\i0  significa semplicemente che il tuo telefono viene inserito in un "gruppetto" virtuale con altri $k$ telefoni. Prima di inviare i dati a Google, i telefoni di questo gruppetto mescolano i loro numeri tra di loro aggiungendo del rumore matematico. Quando il pacchetto arriva al server di Google, il server \'e8 in grado di leggere solo la somma totale di tutto il gruppo, ma gli \'e8 matematicamente impossibile decifrare cosa ha calcolato il tuo specifico telefono.\uc0\u8232 
+\f0\b 3. "La complessit\'e0 computazionale lato client sale vertiginosamente..."
+\f1\b0 \uc0\u8232 Ecco la fregatura del sistema: fare questo continuo gioco di crittografia e mescolamento dati con gli altri telefoni richiede una marea di calcoli matematici. Finch\'e9 l'Intelligenza Artificiale \'e8 piccola, lo smartphone ce la fa. Ma se il modello AI diventa gigante (con miliardi di 
+\f2\i parametri
+\f1\i0 ), il processore del tuo telefono non ha la potenza per cifrare tutta quella mole di dati in tempo reale, finendo per bloccarsi o prosciugare la batteria.\uc0\u8232 
+\f0\b In sintesi:
+\f1\b0  Google non aspetta i telefoni lenti e usa un trucco crittografico "di gruppo" per proteggere la privacy del singolo utente. Questo trucco per\'f2 \'e8 cos\'ec pesante da calcolare che rischia di fondere la batteria dello smartphone se l'IA diventa troppo grande.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 Apple, di contro, integra una filosofia di Local Differential Privacy (LDP), aggiungendo rumore direttamente sul dispositivo prima della trasmissione. Sebbene garantisca la privacy senza dipendere da aggregatori sicuri, l'LDP comporta un calo di accuratezza del modello (accuracy hit) spesso inaccettabile in ambito diagnostico.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 2.2 Il Paradigma Cross-Silo (La scelta per il dominio sanitario)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 A differenza del Cross-Device, la nostra idea \'e8 orientata nel dominio Cross-Silo FL. Qui la scala \'e8 ridotta (da 2 a 100 organizzazioni), ma i client (es. ospedali) sono entit\'e0 giuridiche affidabili, dotate di alta capacit\'e0 computazionale e connettivit\'e0 stabile.\
+Questa differenza infrastrutturale cambia radicalmente le regole del gioco distribuito:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls3\ilvl0
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Abbandono del server centralizzato massivo:
+\f1\b0  Non essendo vincolati a gestire milioni di drop-out, possiamo evitare l'uso di cluster centralizzati (Single Point of Failure) a favore di architetture di orchestrazione Peer-to-Peer, delegando l'elezione dell'aggregatore ai nodi stessi.\
+\ls3\ilvl0
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Ridefinizione del concetto di Privacy:
+\f1\b0  Nel Cross-Silo, l'unit\'e0 da proteggere con la Differential Privacy non \'e8 pi\'f9 la singola query dell'utente, ma l'intero dataset ospedaliero (Silo-level DP).\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 Questo cambio di paradigma rende inefficaci le orchestrazioni asincrone massicce sviluppate per gli smartphone, imponendo la creazione di un'architettura customizzata (Erlang-Python) che privilegi il rigore delle transazioni, il determinismo e il consenso distribuito.\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 3. Architettura Fisica e Integrazione Eterogenea (Node-Level)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Data la contrapposizione chiara tra la necessit\'e0 di orchestrazione resiliente e il calcolo tensoriale intensivo, proponiamo di adottare un'architettura eterogenea per ogni nodo ospedaliero: il layer di rete e la gestione della concorrenza sono demandati alla BEAM VM (Erlang/Elixir), mentre l'inferenza LLM e la manipolazione degli spazi latenti sono delegate a processi Python "stateless".\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 3.1 Pattern di Comunicazione e Serializzazione (ETF)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Per far comunicare questi due mondi, l'architettura scarta soluzioni basate su Remote Procedure Call agnostiche come gRPC. Sebbene popolari, queste risultano "context-blind" rispetto ai segnali di terminazione nativi della BEAM e introducono un oneroso doppio overhead di parsing, inadatto a vettori ad alta dimensionalit\'e0.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls4\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Appunti per noi (Spiegazione semplificata\uc0\u8232 
+\f0\b\fs28 1. Perch\'e9 scartare gRPC? (Le "RPC agnostiche")\uc0\u8232 
+\f1\b0\fs24 Le RPC (Remote Procedure Call) come 
+\f0\b gRPC
+\f1\b0  sono strumenti standard che permettono a programmi scritti in linguaggi diversi di parlarsi. Sono definite "agnostiche" perch\'e9 non appartengono a un linguaggio specifico. Tuttavia, per il tuo progetto, presentano due grossi problemi:\uc0\u8232 
+\f0\b\fs28 2. Il problema del "Context-Blind" (Cecit\'e0 al contesto)\uc0\u8232 
+\f1\b0\fs24 In Erlang (sulla BEAM), se un processo "muore" o va in crash, il sistema lo rileva istantaneamente grazie a meccanismi interni chiamati 
+\f2\i Link
+\f1\i0  e 
+\f2\i Monitor
+\f1\i0 .\
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\partightenfactor0
+\ls4\ilvl1
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Il problema:
+\f1\b0  gRPC \'e8 un protocollo esterno. Se il worker Python crasha, Erlang non "sente" il crash attraverso gRPC in modo nativo. \'c8 "cieco" (blind) rispetto a ci\'f2 che succede dentro il tunnel di comunicazione.\
+\ls4\ilvl1
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 La conseguenza:
+\f1\b0  Senza questa visione, non potresti usare i 
+\f0\b Supervision Trees
+\f1\b0  in modo efficace per riavviare automaticamente il worker Python appena fallisce.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa280\partightenfactor0
+\ls4\ilvl0
+\f0\b\fs28 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 3. Il "Doppio Overhead di Parsing" (Il peso del traduttore)\uc0\u8232 
+\f1\b0\fs24 Quando invii dati (come i pesi di un'IA) tramite gRPC, succede questo:\
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\partightenfactor0
+\ls4\ilvl1
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 In Python:
+\f1\b0  Il dato viene convertito da oggetto Python a formato Protobuf (1\'b0 passaggio).\
+\ls4\ilvl1
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 In Erlang:
+\f1\b0  Il dato arriva come Protobuf e deve essere convertito in un termine Erlang (2\'b0 passaggio).\
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\partightenfactor0
+\ls4\ilvl1
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Il problema:
+\f1\b0  Questo "doppio trasloco" di dati richiede tempo e potenza di calcolo.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa280\partightenfactor0
+\ls4\ilvl0
+\f0\b\fs28 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 4. Inadatto a "Vettori ad alta dimensionalit\'e0"\uc0\u8232 
+\f1\b0\fs24 I dati dei modelli LLM (embedding, pesi, gradienti) sono enormi liste di numeri (vettori).\
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\partightenfactor0
+\ls4\ilvl1
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Logica:
+\f1\b0  Se devi spostare un milione di numeri, farlo con un sistema che richiede due traduzioni pesanti (il doppio overhead) rallenta tutto il sistema.\
+\ls4\ilvl1
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u9702 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Soluzione:
+\f1\b0  Usando 
+\f0\b ErlPort
+\f1\b0  e 
+\f0\b ETF
+\f1\b0  (Erlang External Term Format), i dati passano quasi "cos\'ec come sono", come se fossero nella stessa memoria, rendendo il sistema molto pi\'f9 veloce.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa280\partightenfactor0
+\ls4\ilvl0
+\f0\b\fs28 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 In sintesi, la logica \'e8:\uc0\u8232 
+\f1\b0\fs24 Abbiamo scelto di non usare "traduttori universali" (gRPC) perch\'e9 sono 
+\f0\b poco sicuri
+\f1\b0  (Erlang non vede se Python muore) e 
+\f0\b troppo lenti
+\f1\b0  (troppi passaggi di conversione) per gestire la grande mole di dati tipica dell'Intelligenza Artificiale.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 Si adotta invece un'integrazione BEAM-nativa tramite ErlPort (comunicazione via descrittori di porta OS standard I/O) o Pyrlang (che implementa l'Erlang Distribution Protocol). Per ottimizzare il throughput degli spazi latenti, la serializzazione sfrutta l'Erlang External Term Format (ETF): l'utilizzo di tag specifici come BINARY_EXT (Tag 109) per gli array grezzi e NEW_FLOAT_EXT (Tag 70) per i float IEEE a 8 byte minimizza drasticamente la latenza di conversione dei tensori tra l'ambiente Python e la macchina virtuale Erlang.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 3.2 Fault Isolation Locale e Back-pressure\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 In ottica di Sistemi Distribuiti, questa separazione netta delle responsabilit\'e0 garantisce l'isolamento dei guasti (Fault Isolation). I processi Python, gestendo LLM, sono intrinsecamente proni a crash improvvisi per Out of Memory (OOM) o saturazione della GPU.\
+Per evitare che tali fallimenti si propaghino alla rete distribuita, il nodo Erlang utilizza i Supervision Trees (strategia one_for_one). Se il worker Python va in crash, il supervisore intercetta istantaneamente il segnale di uscita (SIGCHILD) e riavvia il processo in uno stato pulito, mantenendo intatta la liveness del nodo di orchestrazione.\
+Inoltre, per prevenire proattivamente la saturazione della memoria, l'architettura prevede l'uso di pattern demand-driven (implementabili tramite framework come Broadway o GenStage). Questi orchestratori gestiscono il back-pressure: se la coda di inferenza lato Python supera la soglia critica, Erlang sospende l'invio di nuovi pacchetti di training (throttling adattivo), proteggendo le risorse fisiche del silo ospedaliero.\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 4. Architettura Logica e Algoritmi di Rete (Network-Level)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Nel panorama della sanit\'e0 digitale, l'implementazione del Cross-Silo Federated Learning (FL) richiede un'infrastruttura che bilanci due necessit\'e0 fondamentali, ovvero l\'92efficienza computazionale e la protezione dei dati. Di conseguenza necessitiamo di una topologia che svolga il ruolo di un framework di resilienza capace di gestire nodi ad alta capacit\'e0 ma operanti in regimi di rete non sempre garantiti. In un contesto Cross-Silo, la sfida viene spostata dalla gestione della massa alla garanzia assoluta di coerenza algoritmica e isolamento dei guasti.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 4.1 Topologia di Rete e Strategia di Leader Election\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 \'c8 fondamentale distinguere tra la topologia logica dell'aggregazione e l'overlay di rete fisico. Dal punto di vista del Machine Learning, il Federated Learning impone una topologia logica a stella (hub-and-spoke), dove i silos inviano gli spazi latenti al Leader eletto per quel round. Tuttavia, affinch\'e9 il 
+\f0\b Bully Algorithm
+\f1\b0  possa funzionare in modo resiliente, l'infrastruttura di orchestrazione sottostante in Erlang mantiene una topologia fisica in Full-Mesh RPC. Ogni nodo ospedaliero \'e8 connesso peer-to-peer a tutti gli altri tramite il demone epmd, garantendo lo scambio dei messaggi di heartbeat e di elezione anche in caso di caduta del nodo centrale.\
+Per eliminare il rischio di Single Point of Failure (SPOF), implementiamo un 
+\f0\b Bully Algorithm
+\f1\b0  modificato per l'elezione dinamica dell'aggregatore. La priorit\'e0 del leader non \'e8 statica, ma calcolata su una metrica composta:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls5\ilvl0
+\f0\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Uptime e Network Throughput:
+\f1\b0  Dato l'overhead di comunicazione tipico dei protocolli di aggregazione sicura, il sistema deve favorire nodi con larghezza di banda superiore.\
+\ls5\ilvl0
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Capacit\'e0 Computazionale Residua:
+\f1\b0  Monitorata tramite il bridge Erlang-Python.\
+\ls5\ilvl0
+\f0\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Stabilit\'e0 Storica:
+\f1\b0  Un coefficiente di affidabilit\'e0 derivato dai round precedenti.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 In caso di fallimento dell'orchestratore, il nodo con il punteggio di priorit\'e0 pi\'f9 elevato assume il ruolo critico, garantendo che il coordinamento dei pesi non subisca interruzioni che renderebbero impossibile la convergenza del modello.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 4.2 Sincronizzazione dei Round e Termination Detection\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 In un sistema distribuito asincrono, il "Round" \'e8 l'unit\'e0 logica di tempo che definisce la convergenza del modello. La gestione degli Stragglers (nodi lenti) \'e8 meno aggressiva rispetto al Cross-Device: poich\'e9 i silos sono limitati e affidabili, il sistema pu\'f2 permettersi una finestra di attesa pi\'f9 ampia, massimizzando l'accuratezza del Federated Averaging (FedAvg).\
+Implementiamo una Barrier Synchronization asincrona dove l'orchestratore attende i messaggi di "Training Complete". La politica di liveness adotta timeout dinamici basati sulla latenza mediana dei round precedenti: l'aggregazione procede se una soglia critica (es. 80% dei nodi) risponde, ma con un meccanismo di Late Update Handling che permette ai nodi ritardatari di reintegrare i propri gradienti nel round successivo senza causare divergenza eccessiva.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 4.2.1 Workflow di Inizializzazione Round\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Per chiarire l'interazione tra i moduli Erlang (orchestrazione) e Python (computazione locale), il seguente diagramma di sequenza illustra la fase critica di bootstrap di un round: dall'elezione del nodo Aggregatore tramite Bully Algorithm, fino all'accordo sul Seed distribuito e all'avvio del processo ML locale.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 {{\NeXTGraphic Attachment.png \width320 \height320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 4.3 Consenso Distribuito e Determinismo del Seed\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Il determinismo distribuito non \'e8 solo una necessit\'e0 tecnica per la coerenza dei pesi, ma un requisito di privacy fondamentale.\
+Per garantire il determinismo degli LLM e la coerenza degli spazi latenti, \'e8 imperativo che tutti i nodi utilizzino lo stesso Seed di inizializzazione. La distribuzione di questo Seed non pu\'f2 avvenire in modo asincrono e insicuro. Il sistema implementa quindi un protocollo di Two-Phase Commit (2PC) guidato dal Leader: prima di iniziare il round, il Leader propone il Seed generato; attende l'acknowledgment (ACK) dalla totalit\'e0 dei silos attivi (Quorum); e solo dopo aver ricevuto conferma, effettua il broadcast del comando di 'Round Start' ai worker Python, garantendo che nessun nodo avvii il training con parametri disallineati.\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 {{\NeXTGraphic Attachment.png \width320 \height320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \
+Seguendo il principio di Data Minimization, le chiavi di cifratura e i valori decifrati devono essere mantenuti esclusivamente in RAM in modo volatile, garantendo che nessuna informazione non aggregata persista su storage fisso, come prescritto dagli standard di sicurezza ACM.\
+Inoltre, se \'e8 il nodo Leader a subire un crash o una partizione di rete durante la fase di aggregazione, il recupero dei gradienti 'in volo' risulterebbe impraticabile e a rischio di corruzione. Pertanto, il sistema adotta una politica di Round Abort. La caduta del Leader innesca immediatamente una nuova elezione tramite Bully Algorithm. Il nuovo Leader eletto dichiara il round corrente invalido, scarta eventuali spazi latenti parziali ricevuti, concorda un nuovo Seed tramite Consenso e inizializza un round di training completamente pulito.\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 5. Roadmap di Implementazione (Deliverables)\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 Abbiamo pensato di sviluppare il progetto in due fasi incrementali:\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b \cf0 Basic Tier (Obiettivo Minimo):
+\f1\b0 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls6\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Implementazione del cluster Erlang (Full Mesh) con un minimo di 3 nodi simulati.\
+\ls6\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Implementazione del Bully Algorithm basato su metriche per l'elezione del Leader (Aggregatore).\
+\ls6\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Integrazione Erlang-Python funzionante tramite Ports (gi\'e0 validata tramite Proof of Concept e caricata in Github).\
+\ls6\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Sincronizzazione dei round tramite Barrier Synchronization asincrona.\
+\ls6\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Simulazione dello scambio di spazi latenti (vettori dummy) e distribuzione del Seed.\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\b \cf0 Advanced Tier (Estensioni in base al tempo impiegato e la realitsticit\'e0):
+\f1\b0 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls7\ilvl0\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Implementazione completa del Two-Phase Commit (2PC) per la validazione del Seed prima del calcolo.\
+\ls7\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Gestione attiva della partizione di rete (Split-Brain) e policy di Round Abort in caso di crash dell'aggregatore durante il trasferimento dei pesi.\
+\ls7\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Integrazione di un LLM minimale reale (es. TinyLlama) nel worker Python per testare l'effettivo throughput del bridge Erlang-Python su payload ad alta dimensionalit\'e0.\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 6. Riferimenti Bibliografici\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls8\ilvl0
+\f1\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 P. Kairouz et al., "Federated Learning and Privacy," Communications of the ACM, Google, [Online]. 
+\f2\i (Definisce i paradigmi industriali Cross-Device e Cross-Silo, i principi di Data Minimization e l'impatto critico sull'accuratezza della Local Differential Privacy).
+\f1\i0 \
+\ls8\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 J. Bell, K. A. Bonawitz, A. Gasc\'f3n, T. Lepoint, e M. Raykova, "Secure Single-Server Aggregation with (Poly)Logarithmic Overhead," in Proceedings of the 2020 ACM SIGSAC Conference on Computer and Communications Security, 2020. 
+\f2\i (Riferimento per l'implementazione del protocollo SecAgg e l'ottimizzazione tramite grafi k-regolari).
+\f1\i0 \
+\ls8\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 N. Carlini, C. Liu, \'da. Erlingsson, J. Kos, e D. Song, "The Secret Sharer: Evaluating and Testing Unintended Memorization in Neural Networks," in Proceedings of the 28th USENIX Security Symposium, 2019. 
+\f2\i (Riferimento per le vulnerabilit\'e0 di Information Disclosure e Gradient Leakage).
+\f1\i0 \
+\ls8\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	4	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Ericsson AB, "External Term Format," in Erlang Runtime System Application (ERTS) Documentation, v16.4. 
+\f2\i (Specifica ufficiale per i protocolli di serializzazione BEAM, inclusi i tag BINARY_EXT 109 e NEW_FLOAT_EXT 70).
+\f1\i0 \
+\ls8\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	5	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 D. Vasiliev, "ErlPort - connect Erlang to other languages: Python documentation," 2009-2015. 
+\f2\i (Riferimento per l'integrazione node-level e la comunicazione asincrona).
+\f1\i0 \
+}
