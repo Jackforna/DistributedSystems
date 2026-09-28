@@ -2,15 +2,15 @@
 
 COOKIE="PROGETTO_FL_SECRET"
 
-# Forziamo a mano i percorsi per evitare che WSL usi i link UNC di rete
+# Imposto i percorsi manualmente per evitare problemi con i path UNC di WSL
 LINUX_PATH="/mnt/c/DistributedSystems/cluster_init"
 WINDOWS_PATH="C:\Users\giaco\OneDrive\Documents\GitHub\DistributedSystems\cluster_init"
 
 echo "=== Spostamento forzato nella cartella su Disco C ==="
-# Creiamo la cartella reale su Windows se non esiste
+# Creo la cartella se non esiste
 mkdir -p "$LINUX_PATH"
 
-# Ci spostiamo fisicamente dentro il disco C prima di compilare
+# Entro nella cartella prima di compilare
 cd "$LINUX_PATH" || exit
 
 echo "=== Compilazione del codice Erlang ==="
@@ -18,7 +18,7 @@ erlc node_fl.erl
 
 echo "=== Apertura dei 3 terminali nativi ==="
 
-# Usiamo /d per obbligare Windows a partire da C:\DistributedSystems\cluster_init
+# /d serve per far partire Windows direttamente dalla cartella corretta
 cmd.exe /c start /d "$WINDOWS_PATH" wsl.exe erl -sname nodo1 -setcookie $COOKIE -run nodo_fl start_aggregator
 
 sleep 1

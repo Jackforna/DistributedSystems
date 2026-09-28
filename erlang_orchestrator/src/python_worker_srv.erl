@@ -14,7 +14,7 @@ send_message(Msg) ->
 
 init([]) ->
     process_flag(trap_exit, true),
-    %% Get python script path from env, fallback to relative path
+    %% Lettura del percorso dello script Python dall'ambiente, con percorso relativo di default
     ScriptPath = application:get_env(erlang_orchestrator, python_worker_script, "../python_worker/worker.py"),
     Cmd = "python3 " ++ ScriptPath,
     Port = open_port({spawn, Cmd}, [stream, {line, 256}, exit_status]),
@@ -31,14 +31,14 @@ handle_cast(_Msg, State) ->
 
 handle_info({Port, {data, {eol, Line}}}, State = #state{port = Port}) ->
     io:format("Received from Python: ~p~n", [Line]),
-    %% Facciamo parsing elementare per prefissi
+    %% Parsing dei messaggi in base al prefisso
     case lists:splitwith(fun(C) -> C =/= $| end, Line) of
         {"TRAIN_RES", "|" ++ TrainRes} ->
             gen_server:cast(fl_manager_srv, {python_result, TrainRes});
         {"AGGREGATE_RES", "|" ++ AggRes} ->
             gen_server:cast(fl_manager_srv, {aggregated_result, AggRes});
         _ ->
-            %% Fallback per altri log 
+            %% Gestione degli altri messaggi
             gen_server:cast(fl_manager_srv, {python_result, Line})
     end,
     {noreply, State};

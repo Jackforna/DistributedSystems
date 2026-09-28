@@ -10,8 +10,8 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-    %% Eseguiamo il ping in modo asincrono inviando un messaggio a noi stessi
-    %% per non bloccare l'avvio del supervisor.
+    %% Avvio asincrono della ricerca dei nodi
+    %% Evita il blocco del supervisor durante l'avvio
     self() ! discover_nodes,
     {ok, #state{}}.
 
@@ -22,7 +22,8 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 handle_info(discover_nodes, State) ->
-    %% Leggiamo la lista dei nodi dall'ambiente (default lista vuota se assente)
+    %% Lettura della lista dei nodi dall'ambiente
+    %% Lista vuota utilizzata come valore di default
     Nodes = application:get_env(erlang_orchestrator, seed_nodes, []),
     lists:foreach(fun ping_node/1, Nodes),
     {noreply, State};
@@ -35,7 +36,7 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%% --- Internal Functions ---
+%% Funzione interna per il controllo dei nodi
 ping_node(Node) ->
     case net_adm:ping(Node) of
         pong ->

@@ -16,10 +16,8 @@ get_leader() ->
     gen_server:call(?MODULE, get_leader).
 
 init([]) ->
-    %% L'elezione non parte in automatico all'avvio del processo per lasciare 
-    %% tempo all'auto-discovery di formare il cluster. 
-    %% Si può chiamare bully_srv:start_election() manualmente, oppure
-    %% triggerarlo da eventi di clusterizzazione in seguito.
+    %% Avvio dell'elezione ritardato per permettere la formazione del cluster
+    %% Possibilità di avvio manuale o tramite eventi successivi
     {ok, #state{}}.
 
 handle_call(get_leader, _From, State) ->
@@ -32,32 +30,31 @@ handle_cast(start_election, State) ->
     HigherNodes = [N || N <- nodes(), N > node()],
     NewState = case HigherNodes of
         [] ->
-            %% Nessun nodo maggiore, diventiamo subito Leader
+            %% Nessun nodo maggiore trovato, elezione come leader
             self() ! become_leader,
             State;
         _ ->
-            %% Invia messaggio di elezione ai nodi maggiori
+            %% Invio del messaggio di elezione ai nodi maggiori
             lists:foreach(fun(Node) ->
                 gen_server:cast({?MODULE, Node}, {election, node()})
             end, HigherNodes),
-            %% Cancella eventuale timer precedente
+            %% Cancellazione del timer precedente, se presente
             if State#state.timer =/= undefined -> erlang:cancel_timer(State#state.timer); true -> ok end,
-            %% Imposta un timer di 2000ms
+            %% Timeout impostato a 2 secondi
             Timer = erlang:send_after(2000, self(), election_timeout),
             State#state{timer = Timer}
     end,
     {noreply, NewState};
 
 handle_cast({election, FromNode}, State) ->
-    %% Un nodo con ID minore ci sfida. Rispondiamo 'alive' per fermarlo.
+    %% Ricezione della sfida da parte di un nodo minore e risposta con alive
     gen_server:cast({?MODULE, FromNode}, {alive, node()}),
-    %% Poiché l'elezione è stata indetta, dobbiamo partecipare anche noi sfidando
-    %% a nostra volta i nodi più grandi.
+    %% Avvio dell'elezione anche su questo nodo
     gen_server:cast(?MODULE, start_election),
     {noreply, State};
 
 handle_cast({alive, _FromNode}, State) ->
-    %% Un nodo maggiore ha risposto. Annulliamo la nostra scalata al potere.
+    %% Risposta ricevuta da un nodo maggiore, elezione interrotta
     io:format("~c[34m🛡️ [ELECTION] Ricevuto alive. Fermo l'elezione.~c[0m~n", [27, 27]),
     case State#state.timer of
         undefined -> ok;
@@ -66,7 +63,7 @@ handle_cast({alive, _FromNode}, State) ->
     {noreply, State#state{timer = undefined}};
 
 handle_cast({coordinator, LeaderNode}, State) ->
-    %% Aggiorniamo il leader riconosciuto
+    %% Aggiornamento del leader riconosciuto
     io:format("~c[36m👁️ [ELECTION] Riconosco come Leader: ~p~c[0m~n", [27, LeaderNode, 27]),
     {noreply, State#state{leader = LeaderNode}};
 
@@ -74,13 +71,13 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 handle_info(election_timeout, State) ->
-    %% Nessun nodo maggiore ha risposto entro il timeout.
+    %% Nessuna risposta ricevuta da nodi maggiori entro il timeout
     self() ! become_leader,
     {noreply, State#state{timer = undefined}};
 
 handle_info(become_leader, State) ->
     io:format("~c[32m👑 [ELECTION] Sono il nuovo Leader!~c[0m~n", [27, 27]),
-    %% Dico a tutti gli altri nodi (compresi quelli inferiori) che sono io il leader
+    %% Comunicazione del nuovo leader agli altri nodi
     lists:foreach(fun(Node) ->
         gen_server:cast({?MODULE, Node}, {coordinator, node()})
     end, nodes()),

@@ -7,11 +7,11 @@ def main():
         try:
             line = sys.stdin.readline()
             if not line:
-                break # EOF ricevuto
+                break # Fine del flusso di input
             line = line.strip()
             
             if line.startswith("TRAIN"):
-                # Simula l'allenamento restituendo un array con pesi fittizi +/- random
+                # Simulazione dell'allenamento con generazione di pesi casuali
                 w1 = 0.8 + random.uniform(-0.1, 0.1)
                 w2 = 1.1 + random.uniform(-0.1, 0.1)
                 w3 = 0.9 + random.uniform(-0.1, 0.1)
@@ -21,7 +21,7 @@ def main():
                 
             elif line.startswith("AGGREGATE|"):
                 payload = line.split("|", 1)[1]
-                # payload sarà una lista di liste in JSON: [[w1, w2, w3], ...]
+                # Contenuto del payload: lista di vettori di pesi in formato JSON
                 weights_list = json.loads(payload)
                 if not weights_list:
                     res = []

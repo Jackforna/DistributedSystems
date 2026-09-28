@@ -1,10 +1,10 @@
 -module(fl_manager_tests).
 -include_lib("eunit/include/eunit.hrl").
 
-%% 1. MOCK DELLO STATO
+%% Definizione dello stato usato nei test
 -record(state, {leader_node = undefined, accumulated_weights = [], expected_nodes = 0, timer_ref = undefined}).
 
-%% 2. TEST CASES
+%% Test
 
 init_test() ->
     {ok, State} = fl_manager_srv:init([]),
@@ -17,8 +17,8 @@ start_round_test() ->
     ?assertNotEqual(undefined, NewState#state.timer_ref).
 
 weights_accumulation_test() ->
-    %% MOCK: Creiamo un processo fittizio che finge di essere python_worker_srv
-    %% e risponde "ok" a qualsiasi gen_server:call, per non far fallire il manager.
+    %% Creazione di un processo fittizio che simula python_worker_srv
+    %% Risposta "ok" alle chiamate per evitare errori durante il test
     MockPid = spawn(fun Loop() -> 
         receive 
             {'$gen_call', From, _Msg} -> 
@@ -30,15 +30,15 @@ weights_accumulation_test() ->
     end),
     register(python_worker_srv, MockPid),
 
-    %% Eseguiamo il test
+    %% Esecuzione del test
     State = #state{expected_nodes = 2, accumulated_weights = ["[0.1, 0.2]"]},
     {noreply, NewState} = fl_manager_srv:handle_cast({weights_payload, 'nodo2@test', "[0.3, 0.4]"}, State),
     
-    %% Verifiche
+    %% Verifica dei risultati
     ?assertEqual(0, NewState#state.expected_nodes),
     ?assertEqual(undefined, NewState#state.timer_ref),
 
-    %% PULIZIA: Rimuoviamo il finto processo
+    %% Rimozione del processo fittizio
     unregister(python_worker_srv),
     exit(MockPid, kill).
 
