@@ -1,3 +1,6 @@
+%%% File descrittore (metadati) dell'applicazione OTP erlang_orchestrator.
+%%% Definisce le variabili d'ambiente, i processi registrati e l'entry point del sistema.
+
 {application, erlang_orchestrator,
  [{description, "Hospital Node Orchestrator"},
   {vsn, "0.1.0"},

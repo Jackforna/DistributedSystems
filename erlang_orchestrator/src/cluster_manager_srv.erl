@@ -1,3 +1,6 @@
+%%% Microservizio OTP dedicato all'Auto-Discovery e alla gestione della rete.
+%%% Interroga asincronamente i seed nodes per instaurare la topologia Full-Mesh del cluster.
+
 -module(cluster_manager_srv).
 -behaviour(gen_server).
 

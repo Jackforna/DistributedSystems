@@ -1,3 +1,6 @@
+%%% Microservizio OTP responsabile dell'elezione distribuita del nodo Aggregatore (Leader).
+%%% Implementa il Bully Algorithm gestendo i messaggi ELECTION, ALIVE e COORDINATOR.
+
 -module(bully_srv).
 -behaviour(gen_server).
 

@@ -2,7 +2,7 @@
 
 COOKIE="PROGETTO_FL_SECRET"
 
-# Imposto i percorsi manualmente per evitare problemi con i path UNC di WSL
+# Imposto i percorsi manualmente per evitare problemi con i path UNC di WSL (il progetto è stato fatto con ausilio di WSL)
 LINUX_PATH="/mnt/c/DistributedSystems/cluster_init"
 WINDOWS_PATH="C:\Users\giaco\OneDrive\Documents\GitHub\DistributedSystems\cluster_init"
 
@@ -18,7 +18,7 @@ erlc node_fl.erl
 
 echo "=== Apertura dei 3 terminali nativi ==="
 
-# /d serve per far partire Windows direttamente dalla cartella corretta
+# /d --> per far partire Windows direttamente dalla cartella corretta
 cmd.exe /c start /d "$WINDOWS_PATH" wsl.exe erl -sname nodo1 -setcookie $COOKIE -run nodo_fl start_aggregator
 
 sleep 1

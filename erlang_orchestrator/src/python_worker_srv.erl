@@ -1,3 +1,6 @@
+%%% Bridge asincrono tra la VM Erlang (Control Plane) e l'engine Python (Data Plane).
+%%% Gestione della Port I/O di sistema, garantendo il routing dei risultati e l'isolamento dei guasti.
+
 -module(python_worker_srv).
 -behaviour(gen_server).
 
@@ -6,12 +9,17 @@
 
 -record(state, {port}).
 
+%% Callback del gen_server
+
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 send_message(Msg) ->
     gen_server:call(?MODULE, {send, Msg}).
 
+
+%% Estrazione dinamica del path dello script per evitare percorsi hardcoded
+%% e avviamento del processo figlio del sistema operativo tramite flussi Standard I/O.
 init([]) ->
     process_flag(trap_exit, true),
     %% Lettura del percorso dello script Python dall'ambiente, con percorso relativo di default
@@ -26,9 +34,13 @@ handle_call({send, Msg}, _From, State = #state{port = Port}) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
+%% Invia un comando testuale (es. TRAIN o AGGREGATE) al processo Python.
+%% Usiamo port_command per iniettare il payload nello Standard Input del demone.
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+%% Reactor Pattern: intercettazione asincrona dell'output (Standard Output) di Python.
+%% Invece di bloccare questo server, instradiamo il risultato al manager del round.
 handle_info({Port, {data, {eol, Line}}}, State = #state{port = Port}) ->
     io:format("Received from Python: ~p~n", [Line]),
     %% Parsing dei messaggi in base al prefisso
@@ -42,6 +54,9 @@ handle_info({Port, {data, {eol, Line}}}, State = #state{port = Port}) ->
             gen_server:cast(fl_manager_srv, {python_result, Line})
     end,
     {noreply, State};
+
+%% Fault Isolation: intercettazione della morte anomala del processo OS (es. SIGKILL o OOM).
+%% Il crash controllato di questo actor innescherà la policy one_for_one del Supervisor.
 handle_info({Port, {exit_status, Status}}, State = #state{port = Port}) ->
     io:format("Python worker exited with status ~p~n", [Status]),
     {stop, {port_exit, Status}, State};

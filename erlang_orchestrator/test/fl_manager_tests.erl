@@ -1,3 +1,6 @@
+%%% Suite automatizzata EUnit per fare i test di formale (White-Box Testing) di fl_manager_srv.
+%%% Verifica le transizioni di stato e isola il Data Plane (Python) tramite PID Mocking.
+
 -module(fl_manager_tests).
 -include_lib("eunit/include/eunit.hrl").
 
